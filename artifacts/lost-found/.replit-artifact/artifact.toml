@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Lost & Found"
+version = "1.0.0"
+id = "artifacts/lost-found"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25106
+
+[services.development]
+run = "pnpm --filter @workspace/lost-found run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/lost-found", "run", "build" ]
+publicDir = "artifacts/lost-found/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25106"
+BASE_PATH = "/"
