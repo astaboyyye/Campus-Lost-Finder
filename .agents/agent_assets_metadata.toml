@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "uziGfHynesk7jXR-c1hrm"
+uri = "file://artifacts/campus-found-mobile/assets/images/icon.png"
+type = "image"
+title = "campus found app icon"
