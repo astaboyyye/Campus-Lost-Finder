@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MapPin, Search, PlusCircle, LayoutDashboard, LogOut, User } from "lucide-react";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 export function Navbar() {
   const { isSignedIn, signOut } = useAuth();
@@ -39,6 +40,7 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
+          <ThemeToggle />
           <Link href="/browse" className="md:hidden">
             <Button variant="ghost" size="icon">
               <Search className="h-5 w-5" />
@@ -114,7 +116,7 @@ export function Navbar() {
                 </Button>
               </Link>
               <Link href="/sign-up">
-                <Button size="sm">Get Started</Button>
+                <Button size="sm">Sign in with Google</Button>
               </Link>
             </div>
           )}

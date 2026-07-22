@@ -1,14 +1,14 @@
 import { Router } from "express";
-import { requireAuth } from "@clerk/express";
 import { Storage } from "@google-cloud/storage";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
+import { requireVerifiedAuth } from "../middlewares/requireVerifiedAuth";
 
 const router = Router();
 
 const bucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
 
-router.post("/storage/upload-url", requireAuth(), async (req, res) => {
+router.post("/storage/upload-url", requireVerifiedAuth, async (req, res) => {
   try {
     if (!bucketId) {
       return res.status(500).json({ error: "Object storage not configured" });

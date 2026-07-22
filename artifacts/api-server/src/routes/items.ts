@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { requireAuth, getAuth } from "@clerk/express";
+import { getAuth } from "@clerk/express";
 import { db, itemsTable, usersTable, claimsTable } from "@workspace/db";
 import { eq, and, ilike, count, sql, desc } from "drizzle-orm";
 import { z } from "zod";
 import { getOrCreateUser } from "./users";
+import { requireVerifiedAuth } from "../middlewares/requireVerifiedAuth";
 
 const router = Router();
 
@@ -162,7 +163,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.post("/", requireAuth(), async (req, res) => {
+router.post("/", requireVerifiedAuth, async (req, res) => {
   try {
     const { userId, sessionClaims } = getAuth(req);
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
@@ -217,7 +218,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.patch("/:id", requireAuth(), async (req, res) => {
+router.patch("/:id", requireVerifiedAuth, async (req, res) => {
   try {
     const { userId } = getAuth(req);
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
@@ -264,7 +265,7 @@ router.patch("/:id", requireAuth(), async (req, res) => {
   }
 });
 
-router.delete("/:id", requireAuth(), async (req, res) => {
+router.delete("/:id", requireVerifiedAuth, async (req, res) => {
   try {
     const { userId } = getAuth(req);
     if (!userId) return res.status(401).json({ error: "Unauthorized" });

@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { requireAuth, getAuth } from "@clerk/express";
+import { getAuth } from "@clerk/express";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { logger } from "../lib/logger";
+import { requireVerifiedAuth } from "../middlewares/requireVerifiedAuth";
 
 const router = Router();
 
@@ -21,11 +22,11 @@ async function getOrCreateUser(clerkUserId: string, email: string) {
   return created;
 }
 
-router.get("/me", requireAuth(), async (req, res) => {
+router.get("/me", requireVerifiedAuth, async (req, res) => {
   try {
-    const { userId, sessionClaims } = getAuth(req);
+    const { userId } = getAuth(req);
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
-    const email = (sessionClaims?.email as string) ?? "";
+    const email = res.locals.authEmail as string;
     const user = await getOrCreateUser(userId, email);
     res.json({
       id: user.id,
@@ -43,7 +44,7 @@ router.get("/me", requireAuth(), async (req, res) => {
   }
 });
 
-router.patch("/me", requireAuth(), async (req, res) => {
+router.patch("/me", requireVerifiedAuth, async (req, res) => {
   try {
     const { userId } = getAuth(req);
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
@@ -75,7 +76,7 @@ router.patch("/me", requireAuth(), async (req, res) => {
   }
 });
 
-router.get("/", requireAuth(), async (req, res) => {
+router.get("/", requireVerifiedAuth, async (req, res) => {
   try {
     const { userId } = getAuth(req);
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
@@ -106,7 +107,7 @@ router.get("/", requireAuth(), async (req, res) => {
   }
 });
 
-router.patch("/:userId/role", requireAuth(), async (req, res) => {
+router.patch("/:userId/role", requireVerifiedAuth, async (req, res) => {
   try {
     const { userId: authUserId } = getAuth(req);
     if (!authUserId) return res.status(401).json({ error: "Unauthorized" });
