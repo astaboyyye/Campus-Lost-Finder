@@ -13,34 +13,32 @@ export default function Home() {
   return (
     <AppLayout>
       {/* Hero Section */}
-      <section className="relative flex min-h-[680px] items-center overflow-hidden py-20 lg:min-h-[760px] lg:py-28">
+      <section className="relative flex min-h-[680px] items-center overflow-hidden py-16 sm:py-20 lg:min-h-[760px] lg:py-28">
         <img src="/background/UTP.webp" alt="Universiti Teknologi PETRONAS campus" className="absolute inset-0 h-full w-full object-cover object-center" fetchPriority="high" />
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/65 to-slate-900/20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/65 via-transparent to-sky-950/20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/68 to-slate-900/35" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/10 to-sky-950/35" />
         <div className="container relative z-10 mx-auto px-4">
-          <div className="liquid-glass max-w-3xl rounded-[2rem] border-white/20 bg-slate-950/30 p-7 text-left text-white shadow-2xl backdrop-blur-xl sm:p-10 lg:p-12">
-          <div className="mb-8 inline-flex items-center rounded-full border border-white/25 bg-white/10 px-3 py-1 text-sm font-medium text-white backdrop-blur-md">
+          <div className="hero-glass mx-auto max-w-[52rem] rounded-[2rem] p-6 text-left text-white sm:mx-0 sm:p-9 lg:p-11">
+          <div className="mb-7 inline-flex items-center rounded-full border border-white/20 bg-slate-950/45 px-3.5 py-1.5 text-sm font-semibold text-white backdrop-blur-xl">
             <span className="mr-2 flex h-2 w-2 animate-pulse rounded-full bg-cyan-300"></span>
-            Built for the UTP community
+            Reuniting students with their stuff
           </div>
-          <h1 className="mb-6 max-w-4xl text-4xl font-extrabold tracking-tight text-white md:text-6xl lg:text-7xl">
-            Find what you lost. <br className="hidden md:block" />
-            <span className="bg-gradient-to-r from-cyan-200 via-white to-violet-200 bg-clip-text text-transparent">
-              Return what you found.
-            </span>
+          <h1 className="mb-6 max-w-[15ch] text-[clamp(2.5rem,6vw,4.75rem)] font-extrabold leading-[1.02] tracking-[-0.045em] text-white">
+            <span className="block">Find what you lost.</span>
+            <span className="block bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent">Return what you found.</span>
           </h1>
-          <p className="mb-10 max-w-2xl text-justify text-lg leading-relaxed text-slate-100 md:text-xl">
+          <p className="mb-9 max-w-2xl text-justify text-base leading-[1.75] text-white/[0.88] sm:text-lg">
             UTP’s dedicated lost-and-found network. Report belongings misplaced around Universiti Teknologi PETRONAS, or help return an item you found to its rightful owner.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap">
             <Link href="/browse" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full h-14 px-8 text-base shadow-lg shadow-primary/20 gap-2">
+              <Button size="lg" className="h-14 w-full gap-2 bg-violet-600 px-8 text-base text-white shadow-lg shadow-violet-600/35 transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-500 hover:brightness-100 hover:shadow-xl hover:shadow-violet-500/40 focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 sm:min-w-48">
                 <Search className="h-5 w-5" />
                 Browse Items
               </Button>
             </Link>
             <Link href="/report" className="w-full sm:w-auto">
-              <Button size="lg" variant="outline" className="h-14 w-full gap-2 border-white/35 bg-white/15 px-8 text-base text-white backdrop-blur hover:bg-black/30">
+              <Button size="lg" variant="outline" className="h-14 w-full gap-2 border-white/55 bg-slate-950/45 px-8 text-base text-white shadow-lg shadow-black/15 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-white/80 hover:bg-slate-950/70 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 sm:min-w-48">
                 <PlusCircle className="h-5 w-5" />
                 Report an Item
               </Button>
@@ -51,32 +49,32 @@ export default function Home() {
       </section>
 
       {/* Stats Banner */}
-      <section className="bg-card border-y py-12 relative z-20 shadow-sm">
+      <section className="relative z-20 -mt-px border-y bg-white py-10 shadow-[0_-18px_45px_rgba(15,23,42,0.16)] dark:bg-slate-950 sm:py-12">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-            <div className="flex flex-col items-center justify-center text-center">
+          <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:grid-cols-4 md:gap-0">
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50/80 p-5 text-center dark:border-white/10 dark:bg-white/5 md:rounded-none md:border-y-0 md:border-l-0 md:bg-transparent">
               <div className="text-4xl md:text-5xl font-black text-primary mb-2">
                 {statsLoading ? <Skeleton className="h-12 w-24" /> : stats?.totalResolved || 0}
               </div>
-              <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Items Reunited</div>
+              <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:text-sm">Items Reunited</div>
             </div>
-            <div className="flex flex-col items-center justify-center text-center">
-              <div className="text-4xl md:text-5xl font-black text-destructive mb-2">
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50/80 p-5 text-center dark:border-white/10 dark:bg-white/5 md:rounded-none md:border-y-0 md:border-l-0 md:bg-transparent">
+              <div className="mb-2 text-4xl font-black text-red-700 dark:text-red-400 md:text-5xl">
                 {statsLoading ? <Skeleton className="h-12 w-24" /> : stats?.totalLost || 0}
               </div>
-              <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Active Lost</div>
+              <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:text-sm">Active Lost Items</div>
             </div>
-            <div className="flex flex-col items-center justify-center text-center">
-              <div className="text-4xl md:text-5xl font-black text-secondary mb-2">
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50/80 p-5 text-center dark:border-white/10 dark:bg-white/5 md:rounded-none md:border-y-0 md:border-l-0 md:bg-transparent">
+              <div className="mb-2 text-4xl font-black text-amber-700 dark:text-amber-400 md:text-5xl">
                 {statsLoading ? <Skeleton className="h-12 w-24" /> : stats?.totalFound || 0}
               </div>
-              <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Active Found</div>
+              <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:text-sm">Active Found Items</div>
             </div>
-            <div className="flex flex-col items-center justify-center text-center">
-              <div className="text-4xl md:text-5xl font-black text-foreground mb-2">
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50/80 p-5 text-center dark:border-white/10 dark:bg-white/5 md:rounded-none md:border-y-0 md:bg-transparent">
+              <div className="mb-2 text-4xl font-black text-slate-950 dark:text-white md:text-5xl">
                 {statsLoading ? <Skeleton className="h-12 w-24" /> : stats?.totalOpen || 0}
               </div>
-              <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Total Open</div>
+              <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:text-sm">Total Open</div>
             </div>
           </div>
         </div>

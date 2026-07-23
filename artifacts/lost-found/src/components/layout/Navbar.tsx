@@ -10,8 +10,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Search, PlusCircle, LayoutDashboard, LogOut, User } from "lucide-react";
+import { Home, MapPin, Menu, Search, PlusCircle, LayoutDashboard, LogOut, User } from "lucide-react";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 export function Navbar() {
   const { isSignedIn, signOut } = useAuth();
@@ -21,10 +22,10 @@ export function Navbar() {
   );
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/40 bg-background/60 shadow-[0_8px_30px_rgba(38,48,80,0.06)] backdrop-blur-2xl supports-[backdrop-filter]:bg-background/55 dark:border-white/10">
-      <div className="container mx-auto flex h-[4.5rem] items-center justify-between px-4">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/90 shadow-[0_8px_30px_rgba(38,48,80,0.08)] backdrop-blur-2xl dark:border-white/10 dark:bg-slate-950/80">
+      <div className="container mx-auto flex h-[4.5rem] items-center justify-between gap-3 px-4">
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="CampusFound home">
             <div className="rounded-2xl bg-gradient-to-br from-primary via-violet-500 to-cyan-400 p-2.5 text-white shadow-lg shadow-primary/20">
               <MapPin className="h-5 w-5" />
             </div>
@@ -33,22 +34,34 @@ export function Navbar() {
             </span>
           </Link>
           <nav className="liquid-control hidden items-center gap-1 rounded-full p-1 md:flex">
-            <Link href="/browse" className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/55 hover:text-foreground dark:hover:bg-white/10">
+            <Link href="/browse" className="rounded-full px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-900/10 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white">
               Browse Items
             </Link>
-            <Link href="/report" className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/55 hover:text-foreground dark:hover:bg-white/10">
+            <Link href="/report" className="rounded-full px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-900/10 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white">
               Report Item
             </Link>
           </nav>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden" aria-label="Open navigation menu">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="liquid-glass w-[min(22rem,88vw)] border-l border-white/30 bg-white/95 pt-8 dark:bg-slate-950/95">
+              <SheetHeader className="mb-8 text-left"><SheetTitle className="flex items-center gap-2"><span className="rounded-xl bg-primary p-2 text-white"><MapPin className="h-4 w-4" /></span>CampusFound</SheetTitle></SheetHeader>
+              <nav aria-label="Mobile navigation" className="flex flex-col gap-2">
+                <MobileNavLink href="/" icon={Home}>Home</MobileNavLink>
+                <MobileNavLink href="/browse" icon={Search}>Browse Items</MobileNavLink>
+                <MobileNavLink href="/report" icon={PlusCircle}>Report an Item</MobileNavLink>
+                {isSignedIn && <><MobileNavLink href="/my-items" icon={MapPin}>My Reports</MobileNavLink><MobileNavLink href="/my-claims" icon={Search}>My Claims</MobileNavLink></>}
+                {isAdmin && <MobileNavLink href="/dashboard" icon={LayoutDashboard}>Admin Dashboard</MobileNavLink>}
+              </nav>
+            </SheetContent>
+          </Sheet>
           <ThemeToggle />
-          <Link href="/browse" className="md:hidden">
-            <Button variant="ghost" size="icon">
-              <Search className="h-5 w-5" />
-            </Button>
-          </Link>
           
           {isSignedIn ? (
             <div className="flex items-center gap-3">
@@ -60,7 +73,7 @@ export function Navbar() {
               </Link>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                  <Button variant="ghost" className="relative h-9 w-9 rounded-full" aria-label="Open account menu">
                     <Avatar className="h-9 w-9 border-2 border-primary/10">
                       <AvatarImage src={user?.imageUrl} alt={user?.fullName || ""} />
                       <AvatarFallback className="bg-primary/10 text-primary font-medium">
@@ -122,4 +135,8 @@ export function Navbar() {
       </div>
     </header>
   );
+}
+
+function MobileNavLink({ href, icon: Icon, children }: { href: string; icon: typeof Home; children: React.ReactNode }) {
+  return <SheetClose asChild><Link href={href} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-slate-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:hover:bg-white/10"><Icon className="h-4 w-4 text-primary" />{children}</Link></SheetClose>;
 }

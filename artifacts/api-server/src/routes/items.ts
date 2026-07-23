@@ -34,11 +34,11 @@ router.get("/stats", async (req, res) => {
     const [lostCount] = await db
       .select({ count: count() })
       .from(itemsTable)
-      .where(eq(itemsTable.type, "lost"));
+      .where(and(eq(itemsTable.type, "lost"), eq(itemsTable.status, "open")));
     const [foundCount] = await db
       .select({ count: count() })
       .from(itemsTable)
-      .where(eq(itemsTable.type, "found"));
+      .where(and(eq(itemsTable.type, "found"), eq(itemsTable.status, "open")));
     const [resolvedCount] = await db
       .select({ count: count() })
       .from(itemsTable)

@@ -16,6 +16,7 @@ import Profile from "@/pages/profile";
 import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 import { GoogleSignIn } from "@/components/auth/GoogleSignIn";
+import { CampusAssistant } from "@/components/assistant/CampusAssistant";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +65,7 @@ function App() {
       <TooltipProvider>
         <WouterRouter base={basePath}>
           <Router />
+          <CampusAssistant />
         </WouterRouter>
         <Toaster />
       </TooltipProvider>
