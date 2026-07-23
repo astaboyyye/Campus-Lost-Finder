@@ -65,7 +65,12 @@ router.post("/assistant", requireVerifiedAuth, async (req, res) => {
       .from(itemsTable)
       .where(eq(itemsTable.status, "open"))
       .orderBy(desc(itemsTable.createdAt))
-      .limit(40);
+      .limit(25);
+
+    const reportContext = openItems.map((item) => ({
+      ...item,
+      description: item.description.slice(0, 240),
+    }));
 
     const systemPrompt = [
       "Your name is Asta. You are the CampusFound assistant for Universiti Teknologi PETRONAS (UTP).",
@@ -78,14 +83,14 @@ router.post("/assistant", requireVerifiedAuth, async (req, res) => {
       "When a likely match exists, mention its report number and direct the user to Browse Items.",
       "If no match exists, suggest filing a report and checking again later.",
       "Keep answers warm, practical, and concise.",
-      `Current open public reports: ${JSON.stringify(openItems)}`,
+      `Current open public reports: ${JSON.stringify(reportContext)}`,
     ].join("\n");
 
     const response = await fetch(
       "https://openrouter.ai/api/v1/chat/completions",
       {
         method: "POST",
-        signal: AbortSignal.timeout(30_000),
+        signal: AbortSignal.timeout(50_000),
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
@@ -137,6 +142,12 @@ router.post("/assistant", requireVerifiedAuth, async (req, res) => {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: "Invalid chat message." });
+    }
+    if (error instanceof Error && error.name === "TimeoutError") {
+      return res.status(504).json({
+        error:
+          "Asta's free AI provider took too long to reply. Please try again.",
+      });
     }
     req.log.error({ err: error }, "Assistant request failed");
     return res

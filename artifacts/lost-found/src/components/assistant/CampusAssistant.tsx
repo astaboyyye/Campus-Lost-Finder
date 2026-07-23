@@ -85,10 +85,22 @@ export function CampusAssistant() {
           })),
         }),
       });
-      const data = (await response.json()) as {
-        message?: string;
-        error?: string;
-      };
+      const responseText = await response.text();
+      let data: { message?: string; error?: string } = {};
+      try {
+        data = JSON.parse(responseText) as {
+          message?: string;
+          error?: string;
+        };
+      } catch {
+        if (!response.ok) {
+          throw new Error(
+            response.status === 504
+              ? "Asta's free AI provider took too long to reply. Please try again."
+              : "Asta is temporarily unavailable. Please try again.",
+          );
+        }
+      }
       if (!response.ok || !data.message) {
         throw new Error(data.error || "The assistant could not reply.");
       }

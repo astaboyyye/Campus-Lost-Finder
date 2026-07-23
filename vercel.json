@@ -6,7 +6,7 @@
   "outputDirectory": "artifacts/lost-found/dist/public",
   "functions": {
     "api/index.mjs": {
-      "maxDuration": 30
+      "maxDuration": 60
     }
   },
   "rewrites": [
