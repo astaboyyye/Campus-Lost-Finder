@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { logger } from "../lib/logger";
 import { requireVerifiedAuth } from "../middlewares/requireVerifiedAuth";
+import { isAdminEmail, requireAdmin } from "../lib/adminAuth";
 
 const router = Router();
 
@@ -14,10 +15,18 @@ async function getOrCreateUser(clerkUserId: string, email: string) {
     .from(usersTable)
     .where(eq(usersTable.clerkUserId, clerkUserId))
     .limit(1);
-  if (existing.length > 0) return existing[0];
+  const role = isAdminEmail(email) ? "admin" : "user";
+  if (existing.length > 0) {
+    const user = existing[0];
+    if (user.email !== email || user.role !== role) {
+      const [updated] = await db.update(usersTable).set({ email, role }).where(eq(usersTable.clerkUserId, clerkUserId)).returning();
+      return updated;
+    }
+    return user;
+  }
   const [created] = await db
     .insert(usersTable)
-    .values({ clerkUserId, email, role: "user" })
+    .values({ clerkUserId, email, role })
     .returning();
   return created;
 }
@@ -80,14 +89,7 @@ router.get("/", requireVerifiedAuth, async (req, res) => {
   try {
     const { userId } = getAuth(req);
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
-    const requestingUser = await db
-      .select()
-      .from(usersTable)
-      .where(eq(usersTable.clerkUserId, userId))
-      .limit(1);
-    if (!requestingUser[0] || requestingUser[0].role !== "admin") {
-      return res.status(403).json({ error: "Admin access required" });
-    }
+    if (!requireAdmin(req, res)) return;
     const users = await db.select().from(usersTable).orderBy(usersTable.createdAt);
     res.json(
       users.map((u) => ({
@@ -103,43 +105,6 @@ router.get("/", requireVerifiedAuth, async (req, res) => {
     );
   } catch (err) {
     req.log.error({ err }, "Failed to list users");
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-router.patch("/:userId/role", requireVerifiedAuth, async (req, res) => {
-  try {
-    const { userId: authUserId } = getAuth(req);
-    if (!authUserId) return res.status(401).json({ error: "Unauthorized" });
-    const requestingUser = await db
-      .select()
-      .from(usersTable)
-      .where(eq(usersTable.clerkUserId, authUserId))
-      .limit(1);
-    if (!requestingUser[0] || requestingUser[0].role !== "admin") {
-      return res.status(403).json({ error: "Admin access required" });
-    }
-    const schema = z.object({ role: z.enum(["user", "admin"]) });
-    const { role } = schema.parse(req.body);
-    const targetClerkId = req.params.userId;
-    const [updated] = await db
-      .update(usersTable)
-      .set({ role })
-      .where(eq(usersTable.clerkUserId, targetClerkId))
-      .returning();
-    if (!updated) return res.status(404).json({ error: "User not found" });
-    res.json({
-      id: updated.id,
-      clerkUserId: updated.clerkUserId,
-      email: updated.email,
-      name: updated.name,
-      studentId: updated.studentId,
-      phone: updated.phone,
-      role: updated.role,
-      createdAt: updated.createdAt.toISOString(),
-    });
-  } catch (err) {
-    req.log.error({ err }, "Failed to update user role");
     res.status(500).json({ error: "Internal server error" });
   }
 });

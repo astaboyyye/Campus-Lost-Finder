@@ -5,6 +5,7 @@ import { eq, and, ilike, count, sql, desc } from "drizzle-orm";
 import { z } from "zod";
 import { getOrCreateUser } from "./users";
 import { requireVerifiedAuth } from "../middlewares/requireVerifiedAuth";
+import { isAdminEmail } from "../lib/adminAuth";
 
 const router = Router();
 
@@ -172,12 +173,12 @@ router.post("/", requireVerifiedAuth, async (req, res) => {
 
     const schema = z.object({
       title: z.string().min(1),
-      description: z.string().optional(),
+      description: z.string().trim().min(10),
       type: z.enum(["lost", "found"]),
       category: z.string().min(1),
       location: z.string().optional(),
       dateLostFound: z.string().optional(),
-      imageUrl: z.string().optional(),
+      imageUrl: z.string().url(),
     });
     const data = schema.parse(req.body);
     const [item] = await db
@@ -228,12 +229,7 @@ router.patch("/:id", requireVerifiedAuth, async (req, res) => {
     const [existing] = await db.select().from(itemsTable).where(eq(itemsTable.id, id)).limit(1);
     if (!existing) return res.status(404).json({ error: "Item not found" });
 
-    const requestingUser = await db
-      .select()
-      .from(usersTable)
-      .where(eq(usersTable.clerkUserId, userId))
-      .limit(1);
-    const isAdmin = requestingUser[0]?.role === "admin";
+    const isAdmin = isAdminEmail(res.locals.authEmail);
     if (existing.userId !== userId && !isAdmin) {
       return res.status(403).json({ error: "Forbidden" });
     }
@@ -275,12 +271,7 @@ router.delete("/:id", requireVerifiedAuth, async (req, res) => {
     const [existing] = await db.select().from(itemsTable).where(eq(itemsTable.id, id)).limit(1);
     if (!existing) return res.status(404).json({ error: "Item not found" });
 
-    const requestingUser = await db
-      .select()
-      .from(usersTable)
-      .where(eq(usersTable.clerkUserId, userId))
-      .limit(1);
-    const isAdmin = requestingUser[0]?.role === "admin";
+    const isAdmin = isAdminEmail(res.locals.authEmail);
     if (existing.userId !== userId && !isAdmin) {
       return res.status(403).json({ error: "Forbidden" });
     }

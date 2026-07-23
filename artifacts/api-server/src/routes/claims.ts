@@ -5,6 +5,7 @@ import { eq, and, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getOrCreateUser } from "./users";
 import { requireVerifiedAuth } from "../middlewares/requireVerifiedAuth";
+import { isAdminEmail, requireAdmin } from "../lib/adminAuth";
 
 const router = Router();
 
@@ -30,12 +31,7 @@ router.get("/", requireVerifiedAuth, async (req, res) => {
     const { userId } = getAuth(req);
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
-    const requestingUser = await db
-      .select()
-      .from(usersTable)
-      .where(eq(usersTable.clerkUserId, userId))
-      .limit(1);
-    const isAdmin = requestingUser[0]?.role === "admin";
+    const isAdmin = isAdminEmail(res.locals.authEmail);
 
     const conditions: any[] = [];
     if (!isAdmin) conditions.push(eq(claimsTable.userId, userId));
@@ -121,12 +117,7 @@ router.get("/:id", requireVerifiedAuth, async (req, res) => {
     const [claim] = await db.select().from(claimsTable).where(eq(claimsTable.id, id)).limit(1);
     if (!claim) return res.status(404).json({ error: "Claim not found" });
 
-    const requestingUser = await db
-      .select()
-      .from(usersTable)
-      .where(eq(usersTable.clerkUserId, userId))
-      .limit(1);
-    const isAdmin = requestingUser[0]?.role === "admin";
+    const isAdmin = isAdminEmail(res.locals.authEmail);
     if (claim.userId !== userId && !isAdmin) {
       return res.status(403).json({ error: "Forbidden" });
     }
@@ -147,14 +138,7 @@ router.patch("/:id", requireVerifiedAuth, async (req, res) => {
     const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid id" });
 
-    const requestingUser = await db
-      .select()
-      .from(usersTable)
-      .where(eq(usersTable.clerkUserId, userId))
-      .limit(1);
-    if (!requestingUser[0] || requestingUser[0].role !== "admin") {
-      return res.status(403).json({ error: "Admin access required" });
-    }
+    if (!requireAdmin(req, res)) return;
 
     const schema = z.object({
       status: z.enum(["pending", "approved", "rejected"]),

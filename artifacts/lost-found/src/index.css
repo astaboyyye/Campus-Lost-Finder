@@ -68,10 +68,10 @@
   --elevate-2: rgba(0,0,0, .08);
 
   /* Energetic Campus Vibe */
-  --background: 220 33% 98%; /* Light slate background */
-  --foreground: 224 71% 4%; /* Dark navy text */
-  --border: 214 32% 91%;
-  --card: 0 0% 100%;
+  --background: 220 14% 96%; /* Silver-white background */
+  --foreground: 222 65% 4%; /* Near-black ink for light mode */
+  --border: 216 24% 82%;
+  --card: 220 35% 99%;
   --card-foreground: 224 71% 4%;
   --card-border: 214 32% 91%;
   --sidebar: 0 0% 100%;
@@ -90,16 +90,16 @@
   --primary-foreground: 210 40% 98%;
   --secondary: 47 100% 55%; /* Energetic yellow/orange */
   --secondary-foreground: 224 71% 4%;
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
+  --muted: 220 12% 91%;
+  --muted-foreground: 220 28% 23%;
   --accent: 210 40% 96.1%;
   --accent-foreground: 222.2 47.4% 11.2%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
-  --input: 214.3 31.8% 91.4%;
+  --input: 216 24% 78%;
   --ring: 250 84% 54%;
   
-  --app-font-sans: 'Inter', sans-serif;
+  --app-font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", "Segoe UI", sans-serif;
   --app-font-serif: Georgia, serif;
   --app-font-mono: Menlo, monospace;
   --radius: 0.75rem;
@@ -135,5 +135,111 @@
   }
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+    letter-spacing: -0.01em;
+    line-height: 1.55;
   }
+
+  h1, h2, h3, h4 {
+    text-wrap: balance;
+    letter-spacing: -0.035em;
+    line-height: 1.12;
+  }
+
+  p { text-wrap: pretty; }
+
+  label, button, input, textarea, select { letter-spacing: -0.008em; }
+}
+
+@layer components {
+  .liquid-canvas {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at 8% 5%, hsl(0 0% 100% / .98), transparent 31rem),
+      radial-gradient(ellipse at 92% 12%, hsl(220 9% 78% / .5), transparent 34rem),
+      radial-gradient(ellipse at 55% 88%, hsl(220 8% 84% / .5), transparent 36rem),
+      linear-gradient(145deg, hsl(220 14% 98%), hsl(220 10% 88%));
+  }
+
+  .liquid-canvas::before,
+  .liquid-canvas::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: 42% 58% 63% 37% / 45% 38% 62% 55%;
+    background: linear-gradient(145deg, hsl(0 0% 100% / .75), hsl(220 8% 68% / .22));
+    box-shadow: inset 0 1px 1px hsl(0 0% 100% / .9), 0 30px 80px hsl(220 20% 30% / .12);
+    filter: blur(1px);
+    animation: liquid-morph 16s ease-in-out infinite alternate;
+  }
+
+  .liquid-canvas::before { left: -10rem; top: 12rem; width: 28rem; height: 24rem; }
+  .liquid-canvas::after { right: -12rem; top: 52rem; width: 34rem; height: 30rem; animation-delay: -7s; }
+
+  .dark .liquid-canvas {
+    background:
+      radial-gradient(circle at 12% 8%, hsl(200 95% 55% / .18), transparent 30rem),
+      radial-gradient(circle at 88% 18%, hsl(270 90% 62% / .2), transparent 34rem),
+      radial-gradient(circle at 55% 85%, hsl(164 90% 52% / .1), transparent 32rem),
+      linear-gradient(145deg, hsl(225 42% 7%), hsl(230 42% 11%));
+  }
+
+  .dark .liquid-canvas::before,
+  .dark .liquid-canvas::after { display: none; }
+
+  .liquid-orb {
+    position: absolute;
+    z-index: -1;
+    border-radius: 9999px;
+    filter: blur(2px);
+    opacity: .7;
+    animation: liquid-float 12s ease-in-out infinite alternate;
+  }
+
+  :root:not(.dark) .liquid-orb {
+    background: linear-gradient(145deg, hsl(0 0% 100% / .68), hsl(220 8% 62% / .2)) !important;
+    box-shadow: inset 0 1px 1px hsl(0 0% 100% / .85), 0 28px 70px hsl(220 20% 25% / .1);
+  }
+
+  .liquid-glass {
+    border: 1px solid hsl(218 30% 72% / .72);
+    background: linear-gradient(145deg, hsl(0 0% 100% / .94), hsl(220 35% 98% / .84));
+    box-shadow: inset 0 1px 0 hsl(0 0% 100%), 0 18px 60px hsl(228 35% 25% / .16);
+    backdrop-filter: blur(24px) saturate(145%);
+    -webkit-backdrop-filter: blur(24px) saturate(145%);
+  }
+
+  .dark .liquid-glass {
+    border-color: hsl(0 0% 100% / .14);
+    background: linear-gradient(145deg, hsl(225 35% 20% / .72), hsl(225 35% 11% / .46));
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / .13), 0 24px 70px hsl(230 80% 2% / .42);
+  }
+
+  .liquid-control {
+    border: 1px solid hsl(218 28% 70% / .7);
+    background: hsl(0 0% 100% / .88);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100%), 0 6px 20px hsl(225 35% 30% / .12);
+    backdrop-filter: blur(16px) saturate(135%);
+  }
+
+  .dark .liquid-control { border-color: hsl(0 0% 100% / .12); background: hsl(225 30% 15% / .55); }
+}
+
+@keyframes liquid-float {
+  from { transform: translate3d(-2%, -2%, 0) scale(1); }
+  to { transform: translate3d(6%, 5%, 0) scale(1.08); }
+}
+
+@keyframes liquid-morph {
+  0% { transform: translate3d(-3%, -2%, 0) rotate(-4deg) scale(1); border-radius: 42% 58% 63% 37% / 45% 38% 62% 55%; }
+  50% { transform: translate3d(5%, 4%, 0) rotate(3deg) scale(1.06); border-radius: 59% 41% 38% 62% / 52% 63% 37% 48%; }
+  100% { transform: translate3d(1%, 8%, 0) rotate(-1deg) scale(.97); border-radius: 35% 65% 55% 45% / 62% 42% 58% 38%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liquid-orb { animation: none; }
+  .liquid-canvas::before, .liquid-canvas::after { animation: none; }
 }

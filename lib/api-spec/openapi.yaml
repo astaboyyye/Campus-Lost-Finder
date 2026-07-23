@@ -402,13 +402,14 @@ components:
 
     ItemInput:
       type: object
-      required: [title, type, category]
+      required: [title, description, type, category, imageUrl]
       properties:
         title:
           type: string
           minLength: 1
         description:
           type: string
+          minLength: 10
         type:
           type: string
           enum: [lost, found]
@@ -420,6 +421,7 @@ components:
           type: string
         imageUrl:
           type: string
+          format: uri
 
     ItemUpdate:
       type: object

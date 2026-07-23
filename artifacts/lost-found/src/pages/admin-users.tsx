@@ -33,6 +33,7 @@ export default function AdminUsers() {
 
   const handleRoleChange = (userId: string, newRole: 'admin' | 'user') => {
     updateRole.mutate({
+      userId,
       data: { role: newRole }
     }, {
       onSuccess: () => {

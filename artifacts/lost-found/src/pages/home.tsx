@@ -13,21 +13,24 @@ export default function Home() {
   return (
     <AppLayout>
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-background pt-16 pb-24 lg:pt-24 lg:pb-32">
-        <div className="absolute inset-0 z-0 opacity-30 dark:opacity-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/40 via-background to-background"></div>
-        <div className="container mx-auto px-4 relative z-10 flex flex-col items-center text-center">
-          <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-sm font-medium text-primary mb-8 backdrop-blur-sm">
-            <span className="flex h-2 w-2 rounded-full bg-primary mr-2 animate-pulse"></span>
-            Reuniting students with their stuff
+      <section className="relative flex min-h-[680px] items-center overflow-hidden py-20 lg:min-h-[760px] lg:py-28">
+        <img src="/background/UTP.webp" alt="Universiti Teknologi PETRONAS campus" className="absolute inset-0 h-full w-full object-cover object-center" fetchPriority="high" />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/65 to-slate-900/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/65 via-transparent to-sky-950/20" />
+        <div className="container relative z-10 mx-auto px-4">
+          <div className="liquid-glass max-w-3xl rounded-[2rem] border-white/20 bg-slate-950/30 p-7 text-left text-white shadow-2xl backdrop-blur-xl sm:p-10 lg:p-12">
+          <div className="mb-8 inline-flex items-center rounded-full border border-white/25 bg-white/10 px-3 py-1 text-sm font-medium text-white backdrop-blur-md">
+            <span className="mr-2 flex h-2 w-2 animate-pulse rounded-full bg-cyan-300"></span>
+            Built for the UTP community
           </div>
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground max-w-4xl mb-6">
+          <h1 className="mb-6 max-w-4xl text-4xl font-extrabold tracking-tight text-white md:text-6xl lg:text-7xl">
             Find what you lost. <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
+            <span className="bg-gradient-to-r from-cyan-200 via-white to-violet-200 bg-clip-text text-transparent">
               Return what you found.
             </span>
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-10 leading-relaxed">
-            The smart campus network for lost and found items. Report a lost item to alert the community, or post something you found to get it back to its owner.
+          <p className="mb-10 max-w-2xl text-justify text-lg leading-relaxed text-slate-100 md:text-xl">
+            UTP’s dedicated lost-and-found network. Report belongings misplaced around Universiti Teknologi PETRONAS, or help return an item you found to its rightful owner.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
             <Link href="/browse" className="w-full sm:w-auto">
@@ -37,11 +40,12 @@ export default function Home() {
               </Button>
             </Link>
             <Link href="/report" className="w-full sm:w-auto">
-              <Button size="lg" variant="outline" className="w-full h-14 px-8 text-base bg-background/50 backdrop-blur border-2 gap-2">
+              <Button size="lg" variant="outline" className="h-14 w-full gap-2 border-white/35 bg-white/15 px-8 text-base text-white backdrop-blur hover:bg-black/30">
                 <PlusCircle className="h-5 w-5" />
                 Report an Item
               </Button>
             </Link>
+          </div>
           </div>
         </div>
       </section>
@@ -84,7 +88,7 @@ export default function Home() {
           <div className="flex items-center justify-between mb-10">
             <div>
               <h2 className="text-3xl font-bold tracking-tight mb-2">Recently Reported</h2>
-              <p className="text-muted-foreground">The latest items reported lost or found on campus.</p>
+              <p className="text-muted-foreground">The latest items reported across the UTP campus.</p>
             </div>
             <Link href="/browse" className="hidden sm:flex">
               <Button variant="ghost" className="gap-2 text-primary hover:text-primary/80">
@@ -146,7 +150,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold mb-3">1. Report it</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Lost something or found an item? Create a quick report with details, location, and a photo to alert the campus.
+                Lost or found something at UTP? Create a report with the campus location, identifying details, and a photo to alert the community.
               </p>
             </div>
             <div className="flex flex-col items-center text-center group">

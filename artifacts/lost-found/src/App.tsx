@@ -14,7 +14,6 @@ import MyItems from "@/pages/my-items";
 import MyClaims from "@/pages/my-claims";
 import Profile from "@/pages/profile";
 import Dashboard from "@/pages/dashboard";
-import AdminUsers from "@/pages/admin-users";
 import NotFound from "@/pages/not-found";
 import { GoogleSignIn } from "@/components/auth/GoogleSignIn";
 
@@ -49,7 +48,7 @@ function Router() {
       <Route path="/my-claims" component={MyClaims} />
       <Route path="/profile" component={Profile} />
       <Route path="/dashboard" component={Dashboard} />
-      <Route path="/admin/users" component={AdminUsers} />
+      <Route path="/admin/users" component={Dashboard} />
       <Route path="/sign-in/*?" component={SignInPage} />
       <Route path="/sign-up/*?" component={SignInPage} />
       <Route path="/sso-callback" component={SsoCallbackPage} />

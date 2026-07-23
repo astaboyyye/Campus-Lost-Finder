@@ -117,7 +117,7 @@ export default function BrowseItems() {
       <div className="bg-muted/30 border-b">
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-3xl font-bold tracking-tight mb-2">Browse Items</h1>
-          <p className="text-muted-foreground mb-6">Search through all reported lost and found items on campus.</p>
+          <p className="text-muted-foreground mb-6">Search through items reported across the UTP campus.</p>
           
           <div className="flex flex-col sm:flex-row gap-3 items-center">
             <form onSubmit={handleSearchSubmit} className="relative w-full sm:max-w-md flex-1">

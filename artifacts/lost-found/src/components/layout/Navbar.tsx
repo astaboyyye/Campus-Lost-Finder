@@ -16,24 +16,27 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 export function Navbar() {
   const { isSignedIn, signOut } = useAuth();
   const { user } = useUser();
+  const isAdmin = user?.emailAddresses.some(
+    ({ emailAddress }) => emailAddress.trim().toLowerCase() === "liebesta2903@gmail.com",
+  );
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+    <header className="sticky top-0 z-50 w-full border-b border-white/40 bg-background/60 shadow-[0_8px_30px_rgba(38,48,80,0.06)] backdrop-blur-2xl supports-[backdrop-filter]:bg-background/55 dark:border-white/10">
+      <div className="container mx-auto flex h-[4.5rem] items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
-            <div className="bg-primary text-primary-foreground p-2 rounded-xl">
+            <div className="rounded-2xl bg-gradient-to-br from-primary via-violet-500 to-cyan-400 p-2.5 text-white shadow-lg shadow-primary/20">
               <MapPin className="h-5 w-5" />
             </div>
             <span className="text-xl font-bold tracking-tight text-foreground hidden sm:inline-block">
               Campus<span className="text-primary">Found</span>
             </span>
           </Link>
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="/browse" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <nav className="liquid-control hidden items-center gap-1 rounded-full p-1 md:flex">
+            <Link href="/browse" className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/55 hover:text-foreground dark:hover:bg-white/10">
               Browse Items
             </Link>
-            <Link href="/report" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/report" className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/55 hover:text-foreground dark:hover:bg-white/10">
               Report Item
             </Link>
           </nav>
@@ -94,12 +97,12 @@ export function Navbar() {
                       <span>My Claims</span>
                     </DropdownMenuItem>
                   </Link>
-                  <Link href="/dashboard">
+                  {isAdmin && <Link href="/dashboard">
                     <DropdownMenuItem className="cursor-pointer text-primary focus:text-primary">
                       <LayoutDashboard className="mr-2 h-4 w-4" />
                       <span>Admin Dashboard</span>
                     </DropdownMenuItem>
-                  </Link>
+                  </Link>}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive" onClick={() => signOut()}>
                     <LogOut className="mr-2 h-4 w-4" />
@@ -109,14 +112,9 @@ export function Navbar() {
               </DropdownMenu>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center">
               <Link href="/sign-in">
-                <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
-                  Sign In
-                </Button>
-              </Link>
-              <Link href="/sign-up">
-                <Button size="sm">Sign in with Google</Button>
+                <Button size="sm">Sign in</Button>
               </Link>
             </div>
           )}

@@ -25,13 +25,15 @@ router.post("/storage/upload-url", requireVerifiedAuth, async (req, res) => {
     const bucket = storage.bucket(bucketId);
     const file = bucket.file(objectKey);
 
-    const [uploadUrl] = await file.generateSignedPostPolicyV4({
+    const [uploadUrl] = await file.getSignedUrl({
+      version: "v4",
+      action: "write",
       expires: Date.now() + 15 * 60 * 1000,
-      conditions: [["content-length-range", 0, 10 * 1024 * 1024]],
+      contentType,
     });
 
     const objectUrl = `https://storage.googleapis.com/${bucketId}/${objectKey}`;
-    res.json({ uploadUrl: uploadUrl.url, objectUrl });
+    res.json({ uploadUrl, objectUrl });
   } catch (err) {
     req.log.error({ err }, "Failed to generate upload URL");
     res.status(500).json({ error: "Internal server error" });

@@ -1,293 +1,108 @@
-import { AppLayout } from "@/components/layout/AppLayout";
-import { useGetMe, useGetItemStats, useListClaims, useListItems, useUpdateClaim } from "@workspace/api-client-react";
+import { useMemo, useState } from "react";
+import { useUser } from "@clerk/react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { format } from "date-fns";
+import { Link } from "wouter";
+import {
+  useGetItemStats, useGetMe, useListClaims, useListItems, useListUsers,
+  useUpdateClaim, useUpdateItem,
+} from "@workspace/api-client-react";
+import { Activity, Bell, Check, ChevronRight, ClipboardList, Eye, PackageSearch, ShieldCheck, Sparkles, Users, X } from "lucide-react";
+import { AppLayout } from "@/components/layout/AppLayout";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { format } from "date-fns";
-import { Link, useLocation } from "wouter";
-import { ShieldCheck, ArrowRight, UserCog, Check, X, Eye } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+
+const ADMIN_EMAIL = "liebesta2903@gmail.com";
 
 export default function Dashboard() {
-  const { data: me, isLoading: meLoading } = useGetMe();
-  const [, setLocation] = useLocation();
-
-  if (meLoading) return <AppLayout><div className="p-8"><Skeleton className="h-8 w-48 mb-8" /></div></AppLayout>;
-  
-  if (me?.role !== 'admin') {
-    setLocation("/");
-    return null;
-  }
-
-  return (
-    <AppLayout>
-      <div className="bg-muted/30 border-b">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Badge variant="default" className="bg-primary/20 text-primary hover:bg-primary/20 border-none">
-                  <ShieldCheck className="w-3 h-3 mr-1" /> Admin Area
-                </Badge>
-              </div>
-              <h1 className="text-3xl font-bold tracking-tight">System Dashboard</h1>
-            </div>
-            <Link href="/admin/users">
-              <Button variant="outline" className="gap-2 bg-background">
-                <UserCog className="h-4 w-4" />
-                Manage Users
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-4 py-8">
-        <StatsOverview />
-
-        <div className="mt-12">
-          <Tabs defaultValue="claims" className="w-full">
-            <TabsList className="mb-6">
-              <TabsTrigger value="claims">Pending Claims Queue</TabsTrigger>
-              <TabsTrigger value="items">Recent Items</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="claims" className="mt-0">
-              <ClaimsQueue />
-            </TabsContent>
-            
-            <TabsContent value="items" className="mt-0">
-              <ItemsTable />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
-    </AppLayout>
+  const { user, isLoaded } = useUser();
+  const { isLoading } = useGetMe();
+  const hasAdminEmail = user?.emailAddresses.some(
+    ({ emailAddress }) => emailAddress.trim().toLowerCase() === ADMIN_EMAIL,
   );
+
+  if (!isLoaded || isLoading) return <AppLayout><div className="container py-10"><Skeleton className="h-64" /></div></AppLayout>;
+  if (!hasAdminEmail) return (
+    <AppLayout><div className="container mx-auto max-w-2xl px-4 py-16"><Alert variant="destructive"><ShieldCheck className="h-4 w-4" /><AlertTitle>Admin access required</AlertTitle><AlertDescription>This dashboard is restricted to the designated administrator account.</AlertDescription></Alert></div></AppLayout>
+  );
+
+  return <AdminDashboard />;
 }
 
-function StatsOverview() {
-  const { data: stats, isLoading } = useGetItemStats();
+function AdminDashboard() {
+  const { data: stats } = useGetItemStats();
+  const { data: itemData, isLoading: itemsLoading } = useListItems({ limit: 50 });
+  const { data: claims, isLoading: claimsLoading } = useListClaims();
+  const { data: users, isLoading: usersLoading } = useListUsers();
+  const pending = claims?.filter((claim) => claim.status === "pending").length ?? 0;
 
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[1,2,3,4].map(i => <Skeleton key={i} className="h-32 rounded-xl" />)}
+  const activity = useMemo(() => [
+    ...(itemData?.items ?? []).map(item => ({ id: `item-${item.id}`, at: item.createdAt, text: `${item.userName || item.userEmail || "A user"} reported ${item.type} item “${item.title}”`, kind: "Report" })),
+    ...(claims ?? []).map(claim => ({ id: `claim-${claim.id}`, at: claim.updatedAt, text: `${claim.userName || claim.userEmail || "A user"} ${claim.status === "pending" ? "submitted a claim for" : `had a claim ${claim.status} for`} “${claim.itemTitle || `Item #${claim.itemId}`}”`, kind: "Claim" })),
+  ].sort((a, b) => +new Date(b.at) - +new Date(a.at)).slice(0, 30), [itemData, claims]);
+
+  return <AppLayout>
+    <div className="liquid-canvas relative flex-1 pb-16">
+    <img src="/background/UTP.webp" alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-center" />
+    <div className="absolute inset-0 bg-gradient-to-br from-slate-950/88 via-slate-900/72 to-indigo-950/65" />
+    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/35 to-sky-950/30" />
+    <div className="liquid-orb left-[-8rem] top-24 h-72 w-72 bg-cyan-300/45" />
+    <div className="liquid-orb right-[-6rem] top-8 h-80 w-80 bg-violet-300/40 [animation-delay:-4s]" />
+    <div className="container relative z-10 mx-auto px-4 pt-8 sm:pt-12"><section className="liquid-glass relative overflow-hidden rounded-[2rem] p-6 sm:p-9"><div className="absolute -right-12 -top-16 h-48 w-48 rounded-full bg-gradient-to-br from-white/70 to-cyan-200/20 blur-2xl" /><div className="relative flex flex-col justify-between gap-6 md:flex-row md:items-end"><div><Badge className="liquid-control mb-4 gap-1.5 rounded-full border-0 px-3 py-1 text-foreground shadow-none"><ShieldCheck className="h-3.5 w-3.5 text-primary" />Secure control center</Badge><p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-primary">CampusFound intelligence</p><h1 className="max-w-2xl text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">Everything important,<br /><span className="bg-gradient-to-r from-primary via-violet-500 to-cyan-500 bg-clip-text text-transparent">beautifully in focus.</span></h1><p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">Review reports, verify ownership, and guide every item home from one fluid workspace.</p></div><div className="liquid-control flex w-fit items-center gap-3 rounded-2xl p-3 pr-5"><span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-400/15 text-emerald-600"><span className="absolute h-2 w-2 animate-ping rounded-full bg-emerald-400" /><Sparkles className="h-4 w-4" /></span><div><p className="text-xs text-muted-foreground">System status</p><p className="text-sm font-semibold">All systems ready</p></div></div></div></section></div>
+    <main className="container relative z-10 mx-auto space-y-8 px-4 py-7">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <Stat title="Open reports" value={stats?.totalOpen ?? 0} icon={PackageSearch} />
+        <Stat title="Pending claims" value={pending} icon={ClipboardList} />
+        <Stat title="Resolved" value={stats?.totalResolved ?? 0} icon={Check} />
+        <Stat title="Users" value={users?.length ?? 0} icon={Users} />
+        <Stat title="Recent reports" value={stats?.recentCount ?? 0} icon={Activity} />
       </div>
-    );
-  }
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Total Open</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold">{stats?.totalOpen || 0}</div>
-          <p className="text-xs text-muted-foreground mt-1">Active lost/found listings</p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Active Lost</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold text-destructive">{stats?.totalLost || 0}</div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Active Found</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold text-secondary">{stats?.totalFound || 0}</div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Successfully Reunited</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold text-primary">{stats?.totalResolved || 0}</div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+      <Tabs defaultValue="claims">
+        <TabsList className="liquid-control h-auto flex-wrap justify-start rounded-2xl p-1.5"><TabsTrigger className="rounded-xl px-4 data-[state=active]:bg-white/80 data-[state=active]:shadow-sm dark:data-[state=active]:bg-white/10" value="claims">Claims ({claims?.length ?? 0})</TabsTrigger><TabsTrigger className="rounded-xl px-4" value="reports">Reports ({itemData?.total ?? 0})</TabsTrigger><TabsTrigger className="rounded-xl px-4" value="users">Users ({users?.length ?? 0})</TabsTrigger><TabsTrigger className="rounded-xl px-4" value="activity">Activity</TabsTrigger><TabsTrigger className="rounded-xl px-4" value="records">Records</TabsTrigger></TabsList>
+        <TabsContent value="claims" className="mt-6"><ClaimsTable claims={claims ?? []} loading={claimsLoading} /></TabsContent>
+        <TabsContent value="reports" className="mt-6"><ReportsTable items={itemData?.items ?? []} loading={itemsLoading} /></TabsContent>
+        <TabsContent value="users" className="mt-6"><UsersTable users={users ?? []} loading={usersLoading} /></TabsContent>
+        <TabsContent value="activity" className="mt-6"><ActivityFeed activity={activity} /></TabsContent>
+        <TabsContent value="records" className="mt-6"><Records claims={claims ?? []} items={itemData?.items ?? []} /></TabsContent>
+      </Tabs>
+    </main></div>
+  </AppLayout>;
 }
 
-function ClaimsQueue() {
-  const { data: claims, isLoading } = useListClaims({ status: 'pending' });
-  const updateClaim = useUpdateClaim();
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  
-  const [selectedClaimId, setSelectedClaimId] = useState<number | null>(null);
-  const [adminNote, setAdminNote] = useState("");
-
-  const handleUpdate = (id: number, status: 'approved' | 'rejected') => {
-    updateClaim.mutate({
-      data: { status, adminNote: adminNote || undefined }
-    }, {
-      onSuccess: () => {
-        toast({ title: `Claim ${status}`, description: `The claim has been marked as ${status}.` });
-        setSelectedClaimId(null);
-        setAdminNote("");
-        queryClient.invalidateQueries({ queryKey: ['/api/claims'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/items'] });
-      },
-      onError: (err: any) => {
-        toast({ title: "Error", description: err.message || "Failed to update claim", variant: "destructive" });
-      }
-    });
-  };
-
-  if (isLoading) return <Skeleton className="h-64 w-full rounded-xl" />;
-
-  const pendingClaims = claims?.filter(c => c.status === 'pending') || [];
-
-  if (pendingClaims.length === 0) {
-    return (
-      <div className="border border-dashed rounded-xl bg-muted/20 p-12 text-center">
-        <ShieldCheck className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
-        <h3 className="text-lg font-semibold mb-2">No pending claims</h3>
-        <p className="text-muted-foreground">The queue is clear. Good job!</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="border rounded-xl bg-card overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b">
-            <tr>
-              <th className="px-6 py-4 font-medium">Item</th>
-              <th className="px-6 py-4 font-medium">Claimant</th>
-              <th className="px-6 py-4 font-medium">Date</th>
-              <th className="px-6 py-4 font-medium text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pendingClaims.map((claim) => (
-              <tr key={claim.id} className="border-b last:border-0 hover:bg-muted/30">
-                <td className="px-6 py-4 font-medium">
-                  <Link href={`/items/${claim.itemId}`} className="text-primary hover:underline flex items-center gap-2">
-                    {claim.itemTitle || `Item #${claim.itemId}`}
-                    <Eye className="h-3 w-3" />
-                  </Link>
-                </td>
-                <td className="px-6 py-4">
-                  <div>{claim.userName || 'Unknown'}</div>
-                  <div className="text-xs text-muted-foreground">{claim.userEmail}</div>
-                </td>
-                <td className="px-6 py-4 text-muted-foreground">
-                  {format(new Date(claim.createdAt), "MMM d, yyyy")}
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button size="sm" variant="outline" onClick={() => setSelectedClaimId(claim.id)}>Review</Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Review Claim</DialogTitle>
-                      </DialogHeader>
-                      <div className="py-4 space-y-4">
-                        <div className="bg-muted/50 p-4 rounded-lg text-sm">
-                          <span className="font-semibold block mb-1">Claimant's description:</span>
-                          {claim.description || "No description provided."}
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Admin Note (Optional)</Label>
-                          <Textarea 
-                            placeholder="Add a note to be sent to the user..."
-                            value={adminNote}
-                            onChange={(e) => setAdminNote(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                      <DialogFooter className="flex gap-2">
-                        <Button 
-                          variant="destructive" 
-                          onClick={() => handleUpdate(claim.id, 'rejected')}
-                          disabled={updateClaim.isPending}
-                        >
-                          <X className="h-4 w-4 mr-1" /> Reject
-                        </Button>
-                        <Button 
-                          className="bg-green-600 hover:bg-green-700" 
-                          onClick={() => handleUpdate(claim.id, 'approved')}
-                          disabled={updateClaim.isPending}
-                        >
-                          <Check className="h-4 w-4 mr-1" /> Approve
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
+function Stat({ title, value, icon: Icon }: { title: string; value: number; icon: typeof Activity }) {
+  return <Card className="liquid-glass group rounded-[1.6rem] border-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"><CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle><span className="rounded-xl bg-primary/10 p-2.5 text-primary transition-transform group-hover:scale-110"><Icon className="h-4 w-4" /></span></CardHeader><CardContent className="flex items-end justify-between"><div className="text-4xl font-semibold tracking-[-0.04em]">{value}</div><ChevronRight className="mb-1 h-4 w-4 text-muted-foreground/60" /></CardContent></Card>;
 }
 
-function ItemsTable() {
-  const { data, isLoading } = useListItems({ limit: 10 });
-
-  if (isLoading) return <Skeleton className="h-64 w-full rounded-xl" />;
-
-  return (
-    <div className="border rounded-xl bg-card overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b">
-            <tr>
-              <th className="px-6 py-4 font-medium">Item</th>
-              <th className="px-6 py-4 font-medium">Type</th>
-              <th className="px-6 py-4 font-medium">Status</th>
-              <th className="px-6 py-4 font-medium">Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data?.items.map((item) => (
-              <tr key={item.id} className="border-b last:border-0 hover:bg-muted/30">
-                <td className="px-6 py-4 font-medium">
-                  <Link href={`/items/${item.id}`} className="hover:underline">
-                    {item.title}
-                  </Link>
-                </td>
-                <td className="px-6 py-4">
-                  <Badge variant="outline" className="capitalize">{item.type}</Badge>
-                </td>
-                <td className="px-6 py-4">
-                  <Badge variant="secondary" className="capitalize">{item.status}</Badge>
-                </td>
-                <td className="px-6 py-4 text-muted-foreground">
-                  {format(new Date(item.createdAt), "MMM d, yyyy")}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="p-4 border-t bg-muted/10 text-center">
-        <Link href="/browse">
-          <Button variant="ghost" size="sm" className="text-primary">
-            View all items in Browse <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </Link>
-      </div>
-    </div>
-  );
+function ClaimsTable({ claims, loading }: { claims: any[]; loading: boolean }) {
+  const update = useUpdateClaim(); const client = useQueryClient(); const { toast } = useToast();
+  const [note, setNote] = useState("");
+  const decide = (id: number, status: "approved" | "rejected") => update.mutate({ id, data: { status, adminNote: note || `Your ownership claim was ${status}.` } }, { onSuccess: () => { setNote(""); client.invalidateQueries(); toast({ title: `Claim ${status}`, description: "The decision and notification were saved to the claim record." }); }, onError: (error: any) => toast({ title: "Update failed", description: error.message, variant: "destructive" }) });
+  if (loading) return <Skeleton className="h-80" />;
+  return <Panel title="Ownership claims" description="Review proof, verify ownership, approve or reject, and notify claimants."><TableShell headers={["Item", "Claimant", "Evidence", "Status", "Updated", "Action"]}>{claims.map(c => <tr className="border-b" key={c.id}><td className="p-3"><Link href={`/items/${c.itemId}`} className="font-medium hover:underline">{c.itemTitle || `Item #${c.itemId}`}</Link></td><td className="p-3"><div>{c.userName || "Unknown"}</div><small className="text-muted-foreground">{c.userEmail}</small></td><td className="p-3 max-w-xs truncate">{c.description || "No written evidence"}</td><td className="p-3"><Status value={c.status} /></td><td className="p-3 text-muted-foreground">{format(new Date(c.updatedAt), "MMM d, yyyy")}</td><td className="p-3"><Dialog><DialogTrigger asChild><Button size="sm" variant="outline"><Eye className="mr-1 h-4 w-4" />Review</Button></DialogTrigger><DialogContent><DialogHeader><DialogTitle>Review claim #{c.id}</DialogTitle></DialogHeader><div className="space-y-4"><div className="rounded-lg bg-muted p-4"><p className="text-sm font-medium">Ownership evidence</p><p className="mt-1 text-sm text-muted-foreground">{c.description || "No description provided."}</p>{c.proofImageUrl && <a className="mt-2 inline-block text-sm text-primary underline" href={c.proofImageUrl} target="_blank" rel="noreferrer">View proof image</a>}</div><div><Label htmlFor={`note-${c.id}`}>Notification to claimant</Label><Textarea id={`note-${c.id}`} value={note} onChange={e => setNote(e.target.value)} placeholder="Explain the decision or request next steps…" /></div></div><DialogFooter><Button variant="destructive" disabled={update.isPending} onClick={() => decide(c.id, "rejected")}><X className="mr-1 h-4 w-4" />Reject</Button><Button disabled={update.isPending} onClick={() => decide(c.id, "approved")}><Bell className="mr-1 h-4 w-4" />Approve & notify</Button></DialogFooter></DialogContent></Dialog></td></tr>)}</TableShell></Panel>;
 }
+
+function ReportsTable({ items, loading }: { items: any[]; loading: boolean }) {
+  const update = useUpdateItem(); const client = useQueryClient(); const { toast } = useToast();
+  const change = (id: number, status: "open" | "claimed" | "resolved") => update.mutate({ id, data: { status } }, { onSuccess: () => { client.invalidateQueries(); toast({ title: "Report updated", description: `Item status changed to ${status}.` }); } });
+  if (loading) return <Skeleton className="h-80" />;
+  return <Panel title="Lost and found reports" description="Manage every report and keep item statuses current."><TableShell headers={["Report", "Reporter", "Type", "Claims", "Created", "Status"]}>{items.map(i => <tr className="border-b" key={i.id}><td className="p-3"><Link href={`/items/${i.id}`} className="font-medium hover:underline">{i.title}</Link><div className="text-xs text-muted-foreground">{i.category} · {i.location || "No location"}</div></td><td className="p-3 text-sm">{i.userName || i.userEmail || "Unknown"}</td><td className="p-3"><Badge variant="outline" className="capitalize">{i.type}</Badge></td><td className="p-3">{i.claimCount ?? 0}</td><td className="p-3 text-muted-foreground">{format(new Date(i.createdAt), "MMM d, yyyy")}</td><td className="p-3"><Select value={i.status} onValueChange={(value) => change(i.id, value as any)} disabled={update.isPending}><SelectTrigger className="w-32"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="open">Open</SelectItem><SelectItem value="claimed">Claimed</SelectItem><SelectItem value="resolved">Resolved</SelectItem></SelectContent></Select></td></tr>)}</TableShell></Panel>;
+}
+
+function UsersTable({ users, loading }: { users: any[]; loading: boolean }) { if (loading) return <Skeleton className="h-80" />; return <Panel title="User accounts" description="View registered accounts and their report activity. Admin access remains locked to the designated email."><TableShell headers={["User", "Email", "Student ID", "Phone", "Joined", "Access"]}>{users.map(u => <tr className="border-b" key={u.id}><td className="p-3 font-medium">{u.name || "Unnamed user"}</td><td className="p-3">{u.email}</td><td className="p-3 text-muted-foreground">{u.studentId || "—"}</td><td className="p-3 text-muted-foreground">{u.phone || "—"}</td><td className="p-3 text-muted-foreground">{format(new Date(u.createdAt), "MMM d, yyyy")}</td><td className="p-3"><Status value={u.role} /></td></tr>)}</TableShell></Panel>; }
+
+function ActivityFeed({ activity }: { activity: any[] }) { return <Panel title="User activity" description="A chronological audit view derived from preserved report and claim records."><div className="divide-y">{activity.map(a => <div className="flex gap-3 py-4" key={a.id}><div className="mt-1 rounded-full bg-primary/10 p-2"><Activity className="h-4 w-4 text-primary" /></div><div><Badge variant="outline">{a.kind}</Badge><p className="mt-1 text-sm">{a.text}</p><p className="text-xs text-muted-foreground">{format(new Date(a.at), "MMM d, yyyy 'at' h:mm a")}</p></div></div>)}{!activity.length && <p className="py-8 text-center text-muted-foreground">No activity yet.</p>}</div></Panel>; }
+
+function Records({ claims, items }: { claims: any[]; items: any[] }) { const rows = [...items.map(i => ({ id: `R-${i.id}`, type: "Report", subject: i.title, status: i.status, at: i.updatedAt })), ...claims.map(c => ({ id: `C-${c.id}`, type: "Claim", subject: c.itemTitle || `Item #${c.itemId}`, status: c.status, at: c.updatedAt }))].sort((a,b) => +new Date(b.at) - +new Date(a.at)); return <Panel title="Report and claim records" description="A unified, date-ordered register for administrative record keeping."><TableShell headers={["Record", "Type", "Subject", "Status", "Last updated"]}>{rows.map(r => <tr className="border-b" key={r.id}><td className="p-3 font-mono text-xs">{r.id}</td><td className="p-3">{r.type}</td><td className="p-3 font-medium">{r.subject}</td><td className="p-3"><Status value={r.status} /></td><td className="p-3 text-muted-foreground">{format(new Date(r.at), "MMM d, yyyy h:mm a")}</td></tr>)}</TableShell></Panel>; }
+
+function Panel({ title, description, children }: { title: string; description: string; children: React.ReactNode }) { return <Card className="liquid-glass rounded-[2rem] border-0"><CardHeader className="px-6 pt-6 sm:px-8 sm:pt-8"><CardTitle className="text-2xl tracking-tight">{title}</CardTitle><p className="text-sm text-muted-foreground">{description}</p></CardHeader><CardContent className="px-3 pb-3 sm:px-5 sm:pb-5">{children}</CardContent></Card>; }
+function TableShell({ headers, children }: { headers: string[]; children: React.ReactNode }) { return <div className="overflow-x-auto rounded-[1.35rem] border border-white/50 bg-white/25 dark:border-white/10 dark:bg-black/10"><table className="w-full min-w-[760px] text-left text-sm"><thead className="bg-white/35 backdrop-blur-xl dark:bg-white/5"><tr>{headers.map(h => <th className="p-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground" key={h}>{h}</th>)}</tr></thead><tbody className="[&_tr]:transition-colors [&_tr:hover]:bg-white/30 dark:[&_tr:hover]:bg-white/5">{children}</tbody></table></div>; }
+function Status({ value }: { value: string }) { const good = ["approved", "resolved", "admin"].includes(value); const bad = value === "rejected"; return <Badge variant={bad ? "destructive" : good ? "default" : "secondary"} className="capitalize">{value}</Badge>; }
