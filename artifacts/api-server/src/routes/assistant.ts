@@ -92,7 +92,7 @@ router.post("/assistant", requireVerifiedAuth, async (req, res) => {
           "HTTP-Referer":
             process.env["OPENROUTER_SITE_URL"] ||
             "https://www.utpcampusfound.dev",
-          "X-OpenRouter-Title": "CampusFound – Asta",
+          "X-OpenRouter-Title": "CampusFound - Asta",
         },
         body: JSON.stringify({
           model:
