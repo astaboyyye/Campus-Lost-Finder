@@ -4,7 +4,7 @@ import { db, itemsTable } from "@workspace/db";
 import { desc, eq } from "drizzle-orm";
 import { Router } from "express";
 import { z } from "zod";
-import { requireVerifiedAuth } from "../middlewares/requireVerifiedAuth";
+import { requireVerifiedAuth } from "../middlewares/requireVerifiedAuth.js";
 
 const router = Router();
 

@@ -3,9 +3,9 @@ import { getAuth } from "@clerk/express";
 import { db, claimsTable, itemsTable, usersTable } from "@workspace/db";
 import { eq, and, sql } from "drizzle-orm";
 import { z } from "zod";
-import { getOrCreateUser } from "./users";
-import { requireVerifiedAuth } from "../middlewares/requireVerifiedAuth";
-import { isAdminEmail, requireAdmin } from "../lib/adminAuth";
+import { getOrCreateUser } from "./users.js";
+import { requireVerifiedAuth } from "../middlewares/requireVerifiedAuth.js";
+import { isAdminEmail, requireAdmin } from "../lib/adminAuth.js";
 
 const router = Router();
 

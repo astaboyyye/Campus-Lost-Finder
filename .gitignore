@@ -13,6 +13,7 @@ node_modules
 .pnpm-store/
 .tools/
 .runlogs/
+.vercel/
 
 # IDEs and editors
 /.idea
@@ -54,3 +55,4 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+.vercel

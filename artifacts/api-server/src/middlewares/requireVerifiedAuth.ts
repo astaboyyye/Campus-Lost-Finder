@@ -1,6 +1,6 @@
 import { clerkClient, getAuth, requireAuth } from "@clerk/express";
 import type { NextFunction, Request, Response } from "express";
-import { isAdminEmail } from "../lib/adminAuth";
+import { isAdminEmail } from "../lib/adminAuth.js";
 
 const clerkAuth = requireAuth();
 

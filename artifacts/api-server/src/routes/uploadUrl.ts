@@ -2,7 +2,7 @@ import { Router } from "express";
 import { Storage } from "@google-cloud/storage";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
-import { requireVerifiedAuth } from "../middlewares/requireVerifiedAuth";
+import { requireVerifiedAuth } from "../middlewares/requireVerifiedAuth.js";
 
 const router = Router();
 
